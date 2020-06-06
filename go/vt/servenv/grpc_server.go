@@ -228,9 +228,10 @@ func serveGRPC() {
 	//       the error "grpc: Server.RegisterService after Server.Serve".
 	go func() {
 		if GRPCChannelzPort != nil && *GRPCChannelzPort != 0 {
+			log.Infof("Listening for gRPC channelz debugging on port %v", *GRPCChannelzPort)
 			channelzListener, err = net.Listen("tcp", fmt.Sprintf(":%d", *GRPCChannelzPort))
 			if err != nil {
-				log.Fatalf("failed start channelz listener: %v", err)
+				log.Fatalf("Cannot listen on port %v for gRPC channelz: %v", *GRPCChannelzPort, err)
 			}
 			service.RegisterChannelzServiceToServer(GRPCServer)
 			go GRPCServer.Serve(channelzListener)
