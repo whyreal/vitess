@@ -66,6 +66,9 @@ var (
 	// GRPCAuth which auth plugin to use (at the moment now only static is supported)
 	GRPCAuth = flag.String("grpc_auth_mode", "", "Which auth plugin implementation to use (eg: static)")
 
+	// GRPCChannelzPort which port to start a channelz listener for gRPC debugging (default none)
+	GRPCChannelzPort = flag.Int("grpc_channelz_port", 0, "Port to listen on for gRPC channelz debug listener")
+
 	// GRPCServer is the global server to serve gRPC.
 	GRPCServer *grpc.Server
 
@@ -199,7 +202,7 @@ func interceptors() []grpc.ServerOption {
 	return interceptors.Build()
 }
 
-func serveGRPC(wantChannelz bool) {
+func serveGRPC() {
 	if *grpccommon.EnableGRPCPrometheus {
 		grpc_prometheus.Register(GRPCServer)
 		grpc_prometheus.EnableHandlingTimeHistogram()
@@ -216,6 +219,7 @@ func serveGRPC(wantChannelz bool) {
 		log.Exitf("Cannot listen on port %v for gRPC: %v", *GRPCPort, err)
 	}
 
+	var channelzListener net.Listener
 	// and serve on it
 	// NOTE: Before we call Serve(), all services must have registered themselves
 	//       with "GRPCServer". This is the case because go/vt/servenv/run.go
@@ -223,10 +227,13 @@ func serveGRPC(wantChannelz bool) {
 	//       serveGRPC(). If this was not the case, the binary would crash with
 	//       the error "grpc: Server.RegisterService after Server.Serve".
 	go func() {
-		if wantChannelz {
-			lis, _ := net.Listen("tcp", ":50051")
+		if GRPCChannelzPort != nil && *GRPCChannelzPort != 0 {
+			channelzListener, err = net.Listen("tcp", fmt.Sprintf(":%d", *GRPCChannelzPort))
+			if err != nil {
+				log.Fatalf("failed start channelz listener: %v", err)
+			}
 			service.RegisterChannelzServiceToServer(GRPCServer)
-			go GRPCServer.Serve(lis)
+			go GRPCServer.Serve(channelzListener)
 		}
 		err := GRPCServer.Serve(listener)
 		if err != nil {
@@ -236,6 +243,10 @@ func serveGRPC(wantChannelz bool) {
 
 	OnTermSync(func() {
 		log.Info("Initiated graceful stop of gRPC server")
+		if GRPCChannelzPort != nil && *GRPCChannelzPort != 0 {
+			log.Info("Stopping channelz listener")
+			channelzListener.Close()
+		}
 		GRPCServer.GracefulStop()
 		log.Info("gRPC server stopped")
 	})
