@@ -28,6 +28,7 @@ import (
 	"vitess.io/vitess/go/trace"
 
 	"google.golang.org/grpc"
+	"google.golang.org/grpc/channelz/service"
 	"google.golang.org/grpc/credentials"
 	"google.golang.org/grpc/keepalive"
 
@@ -198,7 +199,7 @@ func interceptors() []grpc.ServerOption {
 	return interceptors.Build()
 }
 
-func serveGRPC() {
+func serveGRPC(wantChannelz bool) {
 	if *grpccommon.EnableGRPCPrometheus {
 		grpc_prometheus.Register(GRPCServer)
 		grpc_prometheus.EnableHandlingTimeHistogram()
@@ -222,6 +223,11 @@ func serveGRPC() {
 	//       serveGRPC(). If this was not the case, the binary would crash with
 	//       the error "grpc: Server.RegisterService after Server.Serve".
 	go func() {
+		if wantChannelz {
+			lis, _ := net.Listen("tcp", ":50051")
+			service.RegisterChannelzServiceToServer(GRPCServer)
+			go GRPCServer.Serve(lis)
+		}
 		err := GRPCServer.Serve(listener)
 		if err != nil {
 			log.Exitf("Failed to start grpc server: %v", err)

@@ -37,7 +37,11 @@ func Run(port int) {
 	populateListeningURL(int32(port))
 	createGRPCServer()
 	onRunHooks.Fire()
-	serveGRPC()
+	if port == 15000 {
+		serveGRPC(true)
+	} else {
+		serveGRPC(false)
+	}
 	serveSocketFile()
 
 	l, err := proc.Listen(fmt.Sprintf("%v", port))
