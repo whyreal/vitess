@@ -144,7 +144,7 @@ topology:
 
       # enable or disable mysql protocol support, with accompanying auth details
       mysqlProtocol:
-        enabled: false
+        enabled: true
         authType: secret
         # authType can be: none or secret. For secret, perform the following changes:
         # username: myuser

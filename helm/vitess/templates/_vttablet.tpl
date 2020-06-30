@@ -155,6 +155,9 @@ spec:
 {{ if $pmm.enabled }}{{ include "cont-pmm-client" (tuple $pmm $namespace $keyspace) | indent 8 }}{{ end }}
 
       volumes:
+        - name: creds
+          configMap:
+            name: vitess-creds
         - name: vt
           emptyDir: {}
 {{ include "backup-volume" $config.backup | indent 8 }}
@@ -346,6 +349,8 @@ spec:
   volumeMounts:
     - name: vtdataroot
       mountPath: "/vtdataroot"
+    - name: creds
+      mountPath: "/mysqlcreds"
 {{ include "backup-volumeMount" $config.backup | indent 4 }}
 {{ include "user-config-volumeMount" (.extraMyCnf | default $defaultVttablet.extraMyCnf) | indent 4 }}
 {{ include "user-secret-volumeMounts" (.secrets | default $defaultVttablet.secrets) | indent 4 }}
@@ -477,6 +482,11 @@ spec:
         -health_check_interval "5s"
         -mysqlctl_socket "/vtdataroot/mysqlctl.sock"
         -enable_replication_reporter
+{{ if eq $cell.mysqlProtocol.authType "secret" }}
+        -table-acl-config=/mysqlcreds/acls_for_{{ $keyspace.name }}.json
+        -enforce-tableacl-config
+        -queryserver-config-strict-table-acl
+{{ end }}
 
 {{ if $defaultVttablet.useKeyspaceNameAsDbName }}
         -init_db_name_override {{ $keyspace.name | quote }}

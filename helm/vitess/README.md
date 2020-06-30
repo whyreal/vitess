@@ -1,3 +1,14 @@
+# 更新日志
+
+我们对官方原有的 chart 进行了一些修改，默认开启了 认证/授权 检查。
+
+需要 添加/修改 权限可以直接修改 templates/vitess.yaml 中的 configmap/vitess-creds:
+
+- creds.json 为 vtgate 的 mysql_auth_server_static_file 参数的配置文件
+- acls_for_${keyspace name}.json 为 vttablet 的 -table-acl-config 参数的配置文件
+
+然后 helm upgrade vitess 即可。
+
 # Vitess
 
 [Vitess](https://vitess.io) is a database clustering system for horizontal
@@ -13,7 +24,7 @@ It currently includes all Vitess components
 
 ## Using Etcd For Topology Data
 
-The chart will use Kubernetes as the topology store for Vitess. This is the preferred configuration when running Vitess in Kubernetes as it has no external dependencesi.
+The chart will use Kubernetes as the topology store for Vitess. vitess 会创建一个名为 vitesstoponodes 的 api-resources 用于存储 topo 数据。 可以通过 `kubectl get vitesstoponodes -o json` 查看。This is the preferred configuration when running Vitess in Kubernetes as it has no external dependencesi.
 
 If you do wish to use `etcd` as the toplogy service, then you will need to create an etcd cluster and provide the configuration in your `values.yaml`. Etcd can be managed manually or via the [etcd-operator](https://github.com/coreos/etcd-operator).
 

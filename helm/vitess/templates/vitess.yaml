@@ -130,3 +130,50 @@ data:
 
   db.flavor: {{ $.Values.vttablet.flavor }}
 {{ end }} # end with config
+
+---
+# 创建一个 ConfigMap 用于存放 认证/授权的配置。
+# 该 ConfigMap 会通过 volumeMounts 的方式，分别挂载到 vtgate 和 vttablet 的容器中。
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: vitess-creds
+data:
+  creds.json: |
+    {
+      "user1": [
+        {
+          "UserData": "user1",
+          "Password": "user1"
+        }
+      ],
+      "user2": [
+        {
+          "UserData": "user2",
+          "Password": "user2"
+        }
+      ],
+      "vt_appdebug": []
+    }
+  acls_for_commerce.json: |
+    {
+      "table_groups": [{
+        "name": "commerce_acls",
+        "table_names_or_prefixes": [""],
+        "readers": ["user1", "vitess"],
+        "writers": ["user1", "vitess"],
+        "admins": ["user1", "vitess"]
+      }]
+    }
+  acls_for_customer.json: |
+    {
+      "table_groups": [{
+        "name": "commerce_acls",
+        "table_names_or_prefixes": [""],
+        "readers": ["user2", "vitess"],
+        "writers": ["user2", "vitess"],
+        "admins": ["user2", "vitess"]
+      }]
+    }
+
+    
