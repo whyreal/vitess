@@ -259,7 +259,7 @@ vttablet:
 
   # The name of a config map with N files inside of it. Each file will be added
   # to $EXTRA_MY_CNF, overriding any default my.cnf settings
-  extraMyCnf: ""
+  extraMyCnf: "extra-my-cnf"
   # extraMyCnf: extra-my-cnf
 
   # mysqlSize can be "test" or "prod". Default is "prod".
