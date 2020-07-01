@@ -4,10 +4,15 @@
 
 需要 添加/修改 权限可以直接修改 templates/vitess.yaml 中的 configmap/vitess-creds:
 
-- creds.json 为 vtgate 的 mysql_auth_server_static_file 参数的配置文件
-- acls_for_${keyspace name}.json 为 vttablet 的 -table-acl-config 参数的配置文件
+- creds.json 
 
-然后 helm upgrade vitess 即可。
+  为 vtgate 的 mysql_auth_server_static_file 参数的配置文件, 用于认证用户
+  
+- acls_for_${keyspace name}.json 
+
+  为 vttablet 的 -table-acl-config 参数的配置文件，用于对用户进行授权
+
+修改完成后，执行 helm upgrade vitess 即可。
 
 # Vitess
 
