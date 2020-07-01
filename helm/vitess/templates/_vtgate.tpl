@@ -97,8 +97,8 @@ spec:
 
 {{ if $cell.mysqlProtocol.enabled }}
 {{ if eq $cell.mysqlProtocol.authType "secret" }}
-# 通过 volumeMounts 直接将 configMap 挂载为文件，摒弃默认的通过环境变量的方式传递密码。
-# k8s 目前的 secret 只是简单的进行了 base64 的编码，并没有进行加密，也并不安全。
+{{/* 通过 volumeMounts 直接将 configMap 挂载为文件，摒弃默认的通过环境变量的方式传递密码。 */}}
+{{/*  k8s 目前的 secret 只是简单的进行了 base64 的编码，并没有进行加密，也并不安全。 */}}
 {{ end }}
 {{ end }}
 
